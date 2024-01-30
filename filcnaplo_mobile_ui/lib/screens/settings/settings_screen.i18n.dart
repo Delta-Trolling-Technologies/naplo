@@ -74,6 +74,9 @@ extension SettingsLocalization on String {
           "devmode": "Developer Mode",
           "copy_jwt": "Copy JWT",
           "welcome_msg": "Welcome Message",
+          "dtt_insult_msg": "Offensive greetings",
+          "dtt_insult_notice": 
+            "This feature is not recommended for those with weak nerves. If you don't want reFilc to insult you every time it opens, turn this off!",
           "default": "Dynamic",
           "edit_welcome_msg": "Edit welcome message",
           "shadow_effect": "Shadow Effect",
@@ -154,6 +157,9 @@ extension SettingsLocalization on String {
           "devmode": "Fejlesztői mód",
           "copy_jwt": "JWT másolása",
           "welcome_msg": "Üdvözlő üzenet",
+          "dtt_insult_msg": "Sértő üdvözlések",
+          "dtt_insult_notice": 
+            "Ez a funkció nem ajánlott gyenge idegzetűeknek. Ha nem szeretnéd, hogy a reFilc minden megnyíláskor sértegessen, kapcsold ki ezt!",
           "default": "Dinamikus",
           "edit_welcome_msg": "Üdvözlő üzenet szerkesztése",
           "shadow_effect": "Árnyékhatás",
@@ -234,6 +240,9 @@ extension SettingsLocalization on String {
           "devmode": "Entwicklermodus",
           "copy_jwt": "JWT kopieren",
           "welcome_msg": "Willkommensnachricht",
+          "dtt_insult_msg": "Beleidigende Grüße",
+          "dtt_insult_notice":
+            "Diese Funktion wird nicht für Personen mit schwachen Nerven empfohlen. Wenn du nicht möchtest, dass reFilc dich bei jedem Öffnen beleidigt, schalte dies aus!",
           "default": "Dynamisch",
           "edit_welcome_msg": "Begrüßungsnachricht bearbeiten",
           "shadow_effect": "Schatteneffekt",
