@@ -54,6 +54,15 @@ class GradeProvider with ChangeNotifier {
     }
   }
 
+  Future<void> unseenAll() async {
+    String? userId = _user.id;
+    if (userId != null) {
+      final userStore = _database.userStore;
+      userStore.storeLastSeenGrade(DateTime(1969), userId: userId);
+      _lastSeen = DateTime(1969);
+    }
+  }
+
   Future<void> restore() async {
     String? userId = _user.id;
 
@@ -87,6 +96,10 @@ class GradeProvider with ChangeNotifier {
         ? await _database.userQuery.renamedTeachers(userId: _user.user!.id)
         : {};
 
+    // v5
+    Map<String, String> customRoundings =
+        await _database.userQuery.getRoundings(userId: _user.user!.id);
+
     for (Grade grade in _grades) {
       grade.subject.renamedTo =
           renamedSubjects.isNotEmpty ? renamedSubjects[grade.subject.id] : null;
@@ -109,6 +122,11 @@ class GradeProvider with ChangeNotifier {
                       ""
               ? '${grade.json!["SzovegesErtekelesRovidNev"]}'.i18n
               : grade.value.valueName;
+
+      // v5
+      grade.subject.customRounding = customRoundings.isNotEmpty
+          ? double.parse(customRoundings[grade.subject.id] ?? '5.0')
+          : null;
     }
 
     notifyListeners();
@@ -116,6 +134,9 @@ class GradeProvider with ChangeNotifier {
 
   // Fetches Grades from the Kreta API then stores them in the database
   Future<void> fetch() async {
+    // test cucc
+    // unseenAll();
+
     User? user = _user.user;
     if (user == null) throw "Cannot fetch Grades for User null";
     String iss = user.instituteCode;

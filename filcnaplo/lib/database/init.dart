@@ -35,6 +35,11 @@ const settingsDB = DatabaseStruct("settings", {
   "renamed_teachers_italics": int,
   "live_activity_color": String,
   "welcome_message": String, "app_icon": String,
+  // paints
+  "current_theme_id": String, "current_theme_display_name": String,
+  "current_theme_creator": String,
+  // more
+  "show_breaks": int,
 });
 // DON'T FORGET TO UPDATE DEFAULT VALUES IN `initDB` MIGRATION OR ELSE PARENTS WILL COMPLAIN ABOUT THEIR CHILDREN MISSING
 // YOU'VE BEEN WARNED!!!
@@ -60,6 +65,9 @@ const userDataDB = DatabaseStruct("user_data", {
   "goal_pin_dates": String,
   // todo and notes
   "todo_items": String, "self_notes": String,
+  // v5 shit
+  "roundings": String,
+  "grade_rarities": String,
 });
 
 Future<void> createTable(Database db, DatabaseStruct struct) =>
@@ -118,7 +126,10 @@ Future<Database> initDB(DatabaseProvider database) async {
       "goal_befores": "{}",
       "goal_pin_dates": "{}",
       // todo and notes
-      "todo_items": "{}", "self_notes": "[]"
+      "todo_items": "{}", "self_notes": "[]",
+      // v5 shit
+      "roundings": "{}",
+      "grade_rarities": "{}",
     });
   } catch (error) {
     print("ERROR: migrateDB: $error");

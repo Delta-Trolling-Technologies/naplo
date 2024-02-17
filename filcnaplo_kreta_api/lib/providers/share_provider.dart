@@ -3,7 +3,7 @@ import 'package:filcnaplo/api/providers/user_provider.dart';
 import 'package:filcnaplo/models/settings.dart';
 import 'package:filcnaplo/models/shared_theme.dart';
 // import 'package:filcnaplo/models/shared_theme.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -22,7 +22,8 @@ class ShareProvider extends ChangeNotifier {
   Future<SharedTheme> shareCurrentTheme(BuildContext context,
       {bool isPublic = false,
       bool shareNick = true,
-      required SharedGradeColors gradeColors}) async {
+      required SharedGradeColors gradeColors,
+      String displayName = ''}) async {
     final SettingsProvider settings =
         Provider.of<SettingsProvider>(context, listen: false);
 
@@ -30,6 +31,7 @@ class ShareProvider extends ChangeNotifier {
       'public_id': const Uuid().v4(),
       'is_public': isPublic,
       'nickname': shareNick ? _user.nickname : 'Anonymous',
+      'display_name': displayName,
       'background_color': (settings.customBackgroundColor ??
               SettingsProvider.defaultSettings().customBackgroundColor)
           ?.value,
@@ -45,6 +47,9 @@ class ShareProvider extends ChangeNotifier {
               ?.value ??
           const Color(0x00000000).value,
       'shadow_effect': settings.shadowEffect,
+      'theme_mode': settings.theme == ThemeMode.dark
+          ? 'dark'
+          : (settings.theme == ThemeMode.light ? 'light' : null)
     };
 
     SharedTheme theme = SharedTheme.fromJson(themeJson, gradeColors);
@@ -69,6 +74,32 @@ class ShareProvider extends ChangeNotifier {
     }
 
     return null;
+  }
+
+  Future<List<SharedTheme>> getAllPublicThemes(BuildContext context,
+      {int count = 0}) async {
+    List? themesJson = await FilcAPI.getAllSharedThemes(count);
+
+    List<SharedTheme> themes = [];
+
+    if (themesJson != null) {
+      for (var t in themesJson) {
+        if (t['public_id'].toString().replaceAll(' ', '') == '') continue;
+        if (t['grade_colors_id'].toString().replaceAll(' ', '') == '') continue;
+
+        Map? gradeColorsJson =
+            await FilcAPI.getSharedGradeColors(t['grade_colors_id']);
+
+        if (gradeColorsJson != null) {
+          SharedTheme theme = SharedTheme.fromJson(
+              t, SharedGradeColors.fromJson(gradeColorsJson));
+
+          themes.add(theme);
+        }
+      }
+    }
+
+    return themes;
   }
 
   // grade colors

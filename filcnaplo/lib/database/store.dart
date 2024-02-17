@@ -193,4 +193,19 @@ class UserDatabaseStore {
     await db.update("user_data", {"self_notes": selfNotesJson},
         where: "id = ?", whereArgs: [userId]);
   }
+
+  // v5
+  Future<void> storeRoundings(Map<String, String> roundings,
+      {required String userId}) async {
+    String roundingsJson = jsonEncode(roundings);
+    await db.update("user_data", {"roundings": roundingsJson},
+        where: "id = ?", whereArgs: [userId]);
+  }
+
+  Future<void> storeGradeRarities(Map<String, String> rarities,
+      {required String userId}) async {
+    String raritiesJson = jsonEncode(rarities);
+    await db.update("user_data", {"grade_rarities": raritiesJson},
+        where: "id = ?", whereArgs: [userId]);
+  }
 }

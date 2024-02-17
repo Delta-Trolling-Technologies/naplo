@@ -111,7 +111,7 @@ class _PremiumCustomAccentColorSettingState
   @override
   void initState() {
     super.initState();
-    _colorsTabController = TabController(length: 5, vsync: this);
+    _colorsTabController = TabController(length: 4, vsync: this);
     _testTabController = TabController(length: 4, vsync: this);
     settings = Provider.of<SettingsProvider>(context, listen: false);
     shareProvider = Provider.of<ShareProvider>(context, listen: false);
@@ -159,6 +159,14 @@ class _PremiumCustomAccentColorSettingState
 
   void updateCustomColor(dynamic v, bool store,
       {Color? accent, Color? background, Color? panels, Color? icon}) {
+    // reset custom theme id
+    settings.update(
+      currentThemeId: '',
+      currentThemeDisplayName: '',
+      currentThemeCreator: '',
+      store: store,
+    );
+
     if (colorMode != CustomColorMode.theme) {
       settings.update(accentColor: AccentColor.custom, store: store);
     }
@@ -246,7 +254,7 @@ class _PremiumCustomAccentColorSettingState
                 colors: isBackgroundDifferent
                     ? [
                         Theme.of(context).colorScheme.background.withOpacity(1 -
-                            ((currentTheme == ThemeMode.dark ? 0.65 : 0.45) *
+                            ((currentTheme == ThemeMode.dark ? 0.65 : 0.25) *
                                 backgroundAnimation.value)),
                         backgroundGradientBottomColor,
                       ]
@@ -388,8 +396,12 @@ class _PremiumCustomAccentColorSettingState
                                   child: Column(
                                     children: [
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 32.0, vertical: 6.0),
+                                        padding: const EdgeInsets.only(
+                                          left: 32.0,
+                                          right: 32.0,
+                                          top: 16.0,
+                                          bottom: 6.0,
+                                        ),
                                         child: FilterBar(
                                           items: const [
                                             Tab(text: "All"),
@@ -624,6 +636,9 @@ class _PremiumCustomAccentColorSettingState
                                               },
                                             ),
                                             censored: true,
+                                            padding: const EdgeInsets.only(
+                                              right: 6.0,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -681,9 +696,9 @@ class _PremiumCustomAccentColorSettingState
                                               tab: Tab(
                                                   text: "colorpicker_presets"
                                                       .i18n)),
-                                          ColorTab(
-                                              color: unknownColor,
-                                              tab: Tab(text: "enter_id".i18n)),
+                                          // ColorTab(
+                                          //     color: unknownColor,
+                                          //     tab: Tab(text: "enter_id".i18n)),
                                           /*ColorTab(
                                               color:
                                                   settings.customAccentColor ??
@@ -742,37 +757,37 @@ class _PremiumCustomAccentColorSettingState
                                                     CustomColorMode.theme;
                                               });
                                               break;
-                                            case 1:
-                                              setState(() {
-                                                colorMode =
-                                                    CustomColorMode.enterId;
-                                              });
-                                              break;
+                                            // case 1:
+                                            //   setState(() {
+                                            //     colorMode =
+                                            //         CustomColorMode.enterId;
+                                            //   });
+                                            //   break;
                                             /*case 1:
                                               setState(() {
                                                 colorMode =
                                                     CustomColorMode.saved;
                                               });
                                               break;*/
-                                            case 2:
+                                            case 1:
                                               setState(() {
                                                 colorMode =
                                                     CustomColorMode.background;
                                               });
                                               break;
-                                            case 3:
+                                            case 2:
                                               setState(() {
                                                 colorMode =
                                                     CustomColorMode.highlight;
                                               });
                                               break;
-                                            case 4:
+                                            case 3:
                                               setState(() {
                                                 colorMode =
                                                     CustomColorMode.accent;
                                               });
                                               break;
-                                            case 5:
+                                            case 4:
                                               setState(() {
                                                 colorMode =
                                                     CustomColorMode.icon;

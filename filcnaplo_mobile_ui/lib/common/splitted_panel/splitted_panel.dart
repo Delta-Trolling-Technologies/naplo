@@ -14,6 +14,7 @@ class SplittedPanel extends StatelessWidget {
     this.isSeparated = false,
     this.spacing = 6.0,
     this.isTransparent = false,
+    this.hasBorder = false,
   });
 
   final List<Widget>? children;
@@ -24,6 +25,7 @@ class SplittedPanel extends StatelessWidget {
   final bool isSeparated;
   final double spacing;
   final bool isTransparent;
+  final bool hasBorder;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +51,12 @@ class SplittedPanel extends StatelessWidget {
               top: Radius.circular(i == 0 ? 16.0 : 8.0),
               bottom: Radius.circular(children!.length == i + 1 ? 16.0 : 8.0),
             ),
+            border: hasBorder
+                ? Border.all(
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(.25),
+                    width: 1.0)
+                : null,
           ),
           margin: EdgeInsets.only(top: i == 0 ? 0.0 : sp),
           padding: cardPadding ?? EdgeInsets.zero,
@@ -65,7 +73,11 @@ class SplittedPanel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // title
-        if (title != null) SplittedPanelTitle(title: title!),
+        if (title != null)
+          SplittedPanelTitle(
+            title: title!,
+            leftPadding: (padding?.horizontal ?? 48.0) / 2,
+          ),
 
         // body
         if (children != null)
@@ -94,14 +106,16 @@ class SplittedPanel extends StatelessWidget {
 }
 
 class SplittedPanelTitle extends StatelessWidget {
-  const SplittedPanelTitle({super.key, required this.title});
+  const SplittedPanelTitle(
+      {super.key, required this.title, this.leftPadding = 24.0});
 
   final Widget title;
+  final double leftPadding;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 14.0 + 24.0, bottom: 8.0),
+      padding: EdgeInsets.only(left: 14.0 + leftPadding, bottom: 8.0),
       child: DefaultTextStyle(
         style: Theme.of(context).textTheme.titleMedium!.copyWith(
             fontWeight: FontWeight.w600,

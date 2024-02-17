@@ -79,6 +79,12 @@ class SettingsProvider extends ChangeNotifier {
   Color _liveActivityColor;
   String _welcomeMessage;
   String _appIcon;
+  // current theme
+  String _currentThemeId;
+  String _currentThemeDisplayName;
+  String _currentThemeCreator;
+  // more
+  bool _showBreaks;
 
   SettingsProvider({
     DatabaseProvider? database,
@@ -127,6 +133,10 @@ class SettingsProvider extends ChangeNotifier {
     required Color liveActivityColor,
     required String welcomeMessage,
     required String appIcon,
+    required String currentThemeId,
+    required String currentThemeDisplayName,
+    required String currentThemeCreator,
+    required bool showBreaks,
   })  : _database = database,
         _language = language,
         _startPage = startPage,
@@ -172,7 +182,11 @@ class SettingsProvider extends ChangeNotifier {
         _renamedTeachersItalics = renameTeachersItalics,
         _liveActivityColor = liveActivityColor,
         _welcomeMessage = welcomeMessage,
-        _appIcon = appIcon;
+        _appIcon = appIcon,
+        _currentThemeId = currentThemeId,
+        _currentThemeDisplayName = currentThemeDisplayName,
+        _currentThemeCreator = currentThemeCreator,
+        _showBreaks = showBreaks;
 
   factory SettingsProvider.fromMap(Map map,
       {required DatabaseProvider database}) {
@@ -238,6 +252,10 @@ class SettingsProvider extends ChangeNotifier {
       liveActivityColor: Color(map["live_activity_color"]),
       welcomeMessage: map["welcome_message"],
       appIcon: map["app_icon"],
+      currentThemeId: map['current_theme_id'],
+      currentThemeDisplayName: map['current_theme_display_name'],
+      currentThemeCreator: map['current_theme_creator'],
+      showBreaks: map['show_breaks'] == 1,
     );
   }
 
@@ -291,6 +309,10 @@ class SettingsProvider extends ChangeNotifier {
       "live_activity_color": _liveActivityColor.value,
       "welcome_message": _welcomeMessage,
       "app_icon": _appIcon,
+      "current_theme_id": _currentThemeId,
+      "current_theme_display_name": _currentThemeDisplayName,
+      "current_theme_creator": _currentThemeCreator,
+      "show_breaks": _showBreaks ? 1 : 0,
     };
   }
 
@@ -348,6 +370,10 @@ class SettingsProvider extends ChangeNotifier {
       liveActivityColor: const Color(0xFF676767),
       welcomeMessage: '',
       appIcon: 'refilc_default',
+      currentThemeId: '',
+      currentThemeDisplayName: '',
+      currentThemeCreator: 'reFilc',
+      showBreaks: true,
     );
   }
 
@@ -400,6 +426,10 @@ class SettingsProvider extends ChangeNotifier {
   Color get liveActivityColor => _liveActivityColor;
   String get welcomeMessage => _welcomeMessage;
   String get appIcon => _appIcon;
+  String get currentThemeId => _currentThemeId;
+  String get currentThemeDisplayName => _currentThemeDisplayName;
+  String get currentThemeCreator => _currentThemeCreator;
+  bool get showBreaks => _showBreaks;
 
   Future<void> update({
     bool store = true,
@@ -448,6 +478,10 @@ class SettingsProvider extends ChangeNotifier {
     Color? liveActivityColor,
     String? welcomeMessage,
     String? appIcon,
+    String? currentThemeId,
+    String? currentThemeDisplayName,
+    String? currentThemeCreator,
+    bool? showBreaks,
   }) async {
     if (language != null && language != _language) _language = language;
     if (startPage != null && startPage != _startPage) _startPage = startPage;
@@ -577,6 +611,20 @@ class SettingsProvider extends ChangeNotifier {
     }
     if (appIcon != null && appIcon != _appIcon) {
       _appIcon = appIcon;
+    }
+    if (currentThemeId != null && currentThemeId != _currentThemeId) {
+      _currentThemeId = currentThemeId;
+    }
+    if (currentThemeDisplayName != null &&
+        currentThemeDisplayName != _currentThemeDisplayName) {
+      _currentThemeDisplayName = currentThemeDisplayName;
+    }
+    if (currentThemeCreator != null &&
+        currentThemeCreator != _currentThemeCreator) {
+      _currentThemeCreator = currentThemeCreator;
+    }
+    if (showBreaks != null && showBreaks != _showBreaks) {
+      _showBreaks = showBreaks;
     }
     // store or not
     if (store) await _database?.store.storeSettings(this);

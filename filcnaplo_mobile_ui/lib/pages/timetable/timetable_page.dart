@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:animations/animations.dart';
 import 'package:filcnaplo/api/providers/update_provider.dart';
 import 'package:filcnaplo/models/settings.dart';
+// TODO: gulag calendar sync
+// import 'package:filcnaplo/providers/third_party_provider.dart';
 import 'package:filcnaplo/utils/format.dart';
 import 'package:filcnaplo_kreta_api/client/client.dart';
 import 'package:filcnaplo_kreta_api/models/week.dart';
@@ -66,9 +68,13 @@ class TimetablePageState extends State<TimetablePage>
   late UserProvider user;
   late TimetableProvider timetableProvider;
   late UpdateProvider updateProvider;
+  late SettingsProvider settingsProvider;
+
   late String firstName;
+
   late TimetableController _controller;
   late TabController _tabController;
+
   late Widget empty;
 
   int _getDayIndex(DateTime date) {
@@ -175,6 +181,7 @@ class TimetablePageState extends State<TimetablePage>
     user = Provider.of<UserProvider>(context);
     timetableProvider = Provider.of<TimetableProvider>(context);
     updateProvider = Provider.of<UpdateProvider>(context);
+    settingsProvider = Provider.of<SettingsProvider>(context);
 
     // First name
     List<String> nameParts = user.displayName?.split(" ") ?? ["?"];
@@ -205,6 +212,14 @@ class TimetablePageState extends State<TimetablePage>
                     padding: const EdgeInsets.all(8.0),
                     child: IconButton(
                       splashRadius: 24.0,
+                      // tested timetable sync
+                      // onPressed: () async {
+                      //   ThirdPartyProvider tpp =
+                      //       Provider.of<ThirdPartyProvider>(context,
+                      //           listen: false);
+
+                      //   await tpp.pushTimetable(context, _controller);
+                      // },
                       onPressed: () {
                         // If timetable empty, show empty
                         if (_tabController.length == 0) {
@@ -476,7 +491,10 @@ class TimetablePageState extends State<TimetablePage>
 
                                           return Column(
                                             children: [
-                                              if (before != null)
+                                              if (before != null &&
+                                                  (before.end.hour != 0 &&
+                                                      lesson.start.hour != 0) &&
+                                                  settingsProvider.showBreaks)
                                                 Padding(
                                                   padding: EdgeInsets.only(
                                                       top: index == 0
@@ -546,7 +564,8 @@ class TimetablePageState extends State<TimetablePage>
                                                               width: 10.0,
                                                             ),
                                                             Text(
-                                                              '${before.end.hour}:${before.end.minute} - ${lesson.start.hour}:${lesson.start.minute}',
+                                                              '${DateFormat("hh:mm", I18n.of(context).locale.languageCode).format(before.end)} - ${DateFormat("hh:mm", I18n.of(context).locale.languageCode).format(lesson.start)}',
+                                                              // '${before.end.hour}:${before.end.minute} - ${lesson.start.hour}:${lesson.start.minute}',
                                                               style:
                                                                   const TextStyle(
                                                                 fontSize: 12.5,
@@ -701,7 +720,7 @@ class TimetablePageState extends State<TimetablePage>
                               const Color(0x00000000)),
                           // Tabs
                           padding: const EdgeInsets.symmetric(
-                              vertical: 6.0, horizontal: 38.0),
+                              vertical: 6.0, horizontal: 24.0),
                           tabs: List.generate(_tabController.length, (index) {
                             String label = DateFormat("EEEE",
                                     I18n.of(context).locale.languageCode)

@@ -1,4 +1,4 @@
-import 'dart:ui';
+import 'package:flutter/material.dart';
 
 class SharedTheme {
   Map json;
@@ -11,6 +11,8 @@ class SharedTheme {
   Color iconColor;
   bool shadowEffect;
   SharedGradeColors gradeColors;
+  String displayName;
+  ThemeMode? themeMode;
 
   SharedTheme({
     required this.json,
@@ -23,6 +25,8 @@ class SharedTheme {
     required this.iconColor,
     required this.shadowEffect,
     required this.gradeColors,
+    this.displayName = 'displayName',
+    this.themeMode,
   });
 
   factory SharedTheme.fromJson(Map json, SharedGradeColors gradeColors) {
@@ -37,6 +41,10 @@ class SharedTheme {
       iconColor: Color(json['icon_color']),
       shadowEffect: json['shadow_effect'] ?? true,
       gradeColors: gradeColors,
+      displayName: json['display_name'] ?? 'no_name',
+      themeMode: json['theme_mode'] == 'dark'
+          ? ThemeMode.dark
+          : (json['theme_mode'] == 'light' ? ThemeMode.light : null),
     );
   }
 }

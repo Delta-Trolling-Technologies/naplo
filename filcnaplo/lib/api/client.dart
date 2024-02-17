@@ -12,6 +12,7 @@ import 'package:filcnaplo/models/shared_theme.dart';
 import 'package:filcnaplo/models/supporter.dart';
 import 'package:filcnaplo_kreta_api/models/school.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
 
@@ -236,6 +237,19 @@ class FilcAPI {
       theme.json['icon_color'] = theme.iconColor.value.toString();
       theme.json['shadow_effect'] = theme.shadowEffect.toString();
 
+      // set theme mode or remove if unneccessary
+      switch (theme.themeMode) {
+        case ThemeMode.dark:
+          theme.json['theme_mode'] = 'dark';
+          break;
+        case ThemeMode.light:
+          theme.json['theme_mode'] = 'light';
+          break;
+        default:
+          theme.json.remove('theme_mode');
+          break;
+      }
+
       // set linked grade colors
       theme.json['grade_colors_id'] = theme.gradeColors.id;
 
@@ -266,6 +280,21 @@ class FilcAPI {
       }
     } on Exception catch (error, stacktrace) {
       log("ERROR: FilcAPI.getSharedTheme: $error $stacktrace");
+    }
+    return null;
+  }
+
+  static Future<List?> getAllSharedThemes(int count) async {
+    try {
+      http.Response res = await http.get(Uri.parse(allThemes));
+
+      if (res.statusCode == 200) {
+        return (jsonDecode(res.body) as List);
+      } else {
+        throw "HTTP ${res.statusCode}: ${res.body}";
+      }
+    } on Exception catch (error, stacktrace) {
+      log("ERROR: FilcAPI.getAllSharedThemes: $error $stacktrace");
     }
     return null;
   }

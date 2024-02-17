@@ -1,14 +1,19 @@
-// ignore_for_file: prefer_function_declarations_over_variables, library_private_types_in_public_api
+// ignore_for_file: prefer_function_declarations_over_variables, library_private_types_in_public_api, use_build_context_synchronously
 
 import 'dart:io';
 
+import 'package:filcnaplo/api/providers/database_provider.dart';
+import 'package:filcnaplo/api/providers/user_provider.dart';
 import 'package:filcnaplo/helpers/quick_actions.dart';
 import 'package:filcnaplo/icons/filc_icons.dart';
 import 'package:filcnaplo/models/settings.dart';
 import 'package:filcnaplo/theme/colors/colors.dart';
 import 'package:filcnaplo/theme/observer.dart';
 import 'package:filcnaplo_kreta_api/models/grade.dart';
+import 'package:filcnaplo_kreta_api/models/subject.dart';
 import 'package:filcnaplo_kreta_api/models/week.dart';
+import 'package:filcnaplo_kreta_api/providers/absence_provider.dart';
+import 'package:filcnaplo_kreta_api/providers/grade_provider.dart';
 import 'package:filcnaplo_kreta_api/providers/timetable_provider.dart';
 import 'package:filcnaplo_mobile_ui/common/bottom_sheet_menu/bottom_sheet_menu.dart';
 import 'package:filcnaplo_mobile_ui/common/bottom_sheet_menu/bottom_sheet_menu_item.dart';
@@ -179,6 +184,18 @@ class SettingsHelper {
     );
   }
 
+  // new v5 roundings
+  static void newRoundings(BuildContext context, GradeSubject subject) {
+    showRoundedModalBottomSheet(
+      context,
+      child: RoundingSetting(
+        rounding: subject.customRounding,
+        subjectId: subject.id,
+      ),
+    );
+  }
+  // end
+
   static void theme(BuildContext context) {
     var settings = Provider.of<SettingsProvider>(context, listen: false);
     void Function(ThemeMode) setTheme = (mode) {
@@ -322,23 +339,26 @@ class SettingsHelper {
   }
 
   // v5 user changer
-  static void changeCurrentUser(
-      BuildContext context, List<Widget> accountTiles, int len) {
+  static void changeCurrentUser(BuildContext context, List<Widget> accountTiles,
+      int len, String addUsrLocTxt) {
     showBottomSheetMenu(
       context,
       items: List.generate(len, (index) {
         if (index == accountTiles.length) {
-          return Center(
-            child: Container(
-              margin: const EdgeInsets.only(top: 12.0, bottom: 4.0),
-              height: 3.0,
-              width: 75.0,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12.0),
-                color: AppColors.of(context).text.withOpacity(.25),
-              ),
-            ),
+          return const SizedBox(
+            height: 10.0,
           );
+          // return Center(
+          //   child: Container(
+          //     margin: const EdgeInsets.only(top: 12.0, bottom: 4.0),
+          //     height: 3.0,
+          //     width: 175.0,
+          //     decoration: BoxDecoration(
+          //       borderRadius: BorderRadius.circular(12.0),
+          //       color: AppColors.of(context).text.withOpacity(.25),
+          //     ),
+          //   ),
+          // );
         } else if (index == accountTiles.length + 1) {
           return PanelButton(
             onPressed: () {
@@ -353,8 +373,11 @@ class SettingsHelper {
                 setSystemChrome(context);
               });
             },
-            title: Text("add_user"),
-            leading: const Icon(FeatherIcons.userPlus),
+            title: Text(addUsrLocTxt),
+            leading: const Padding(
+              padding: EdgeInsets.only(left: 8.22, right: 6.9),
+              child: Icon(FeatherIcons.userPlus),
+            ),
           );
         } else {
           return accountTiles[index];
@@ -362,11 +385,33 @@ class SettingsHelper {
       }),
     );
   }
+
+  // v5 grade rarity texts
+  static void surpriseGradeRarityText(
+    BuildContext context, {
+    required String title,
+    required String cancel,
+    required String done,
+    required List<String> rarities,
+  }) {
+    showRoundedModalBottomSheet(
+      context,
+      child: GradeRarityTextSetting(
+        title: title,
+        cancel: cancel,
+        done: done,
+        defaultRarities: rarities,
+      ),
+    );
+  }
 }
 
 // Rounding modal
 class RoundingSetting extends StatefulWidget {
-  const RoundingSetting({super.key});
+  const RoundingSetting({super.key, this.rounding, this.subjectId});
+
+  final double? rounding;
+  final String? subjectId;
 
   @override
   _RoundingSettingState createState() => _RoundingSettingState();
@@ -378,12 +423,19 @@ class _RoundingSettingState extends State<RoundingSetting> {
   @override
   void initState() {
     super.initState();
-    rounding =
-        Provider.of<SettingsProvider>(context, listen: false).rounding / 10;
+
+    rounding = (widget.rounding ??
+            Provider.of<SettingsProvider>(context, listen: false).rounding) /
+        10;
   }
 
   @override
   Widget build(BuildContext context) {
+    UserProvider userProvider =
+        Provider.of<UserProvider>(context, listen: false);
+    DatabaseProvider databaseProvider =
+        Provider.of<DatabaseProvider>(context, listen: false);
+
     int roundingResult;
 
     if (4.5 >= 4.5.floor() + rounding) {
@@ -438,10 +490,32 @@ class _RoundingSettingState extends State<RoundingSetting> {
         padding: const EdgeInsets.only(bottom: 12.0, top: 6.0),
         child: MaterialActionButton(
           child: Text(SettingsLocalization("done").i18n),
-          onPressed: () {
-            Provider.of<SettingsProvider>(context, listen: false)
-                .update(rounding: (rounding * 10).toInt());
-            Navigator.of(context).maybePop();
+          onPressed: () async {
+            if (widget.rounding == null) {
+              Provider.of<SettingsProvider>(context, listen: false)
+                  .update(rounding: (rounding * 10).toInt());
+            } else {
+              Map<String, String> roundings = await databaseProvider.userQuery
+                  .getRoundings(userId: userProvider.id!);
+
+              roundings[widget.subjectId!] = (rounding * 10).toStringAsFixed(2);
+
+              await databaseProvider.userStore
+                  .storeRoundings(roundings, userId: userProvider.id!);
+
+              await Provider.of<GradeProvider>(context, listen: false)
+                  .convertBySettings();
+              await Provider.of<TimetableProvider>(context, listen: false)
+                  .convertBySettings();
+              await Provider.of<AbsenceProvider>(context, listen: false)
+                  .convertBySettings();
+            }
+
+            // ik i'm like a kreta dev, but setstate isn't working, so please don't kill me bye :3
+            // actually it also looks good and it's kinda useful
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+            // setState(() {});
           },
         ),
       ),
@@ -660,6 +734,141 @@ class _GradeColorsSettingState extends State<GradeColorsSetting> {
         ),
       ),
     ]);
+  }
+}
+
+class GradeRarityTextSetting extends StatefulWidget {
+  const GradeRarityTextSetting({
+    super.key,
+    required this.title,
+    required this.cancel,
+    required this.done,
+    required this.defaultRarities,
+  });
+
+  final String title;
+  final String cancel;
+  final String done;
+  final List<String> defaultRarities;
+
+  @override
+  _GradeRarityTextSettingState createState() => _GradeRarityTextSettingState();
+}
+
+class _GradeRarityTextSettingState extends State<GradeRarityTextSetting> {
+  late SettingsProvider settings;
+  late DatabaseProvider db;
+  late UserProvider user;
+
+  final _rarityText = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    settings = Provider.of<SettingsProvider>(context, listen: false);
+    db = Provider.of<DatabaseProvider>(context, listen: false);
+    user = Provider.of<UserProvider>(context, listen: false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: List.generate(5, (index) {
+            return ClipOval(
+              child: Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  onTap: () async {
+                    showRenameDialog(
+                      title: widget.title,
+                      cancel: widget.cancel,
+                      done: widget.done,
+                      rarities:
+                          await db.userQuery.getGradeRarities(userId: user.id!),
+                      gradeIndex: (index + 1).toString(),
+                      defaultRarities: widget.defaultRarities,
+                    );
+                  },
+                  child: GradeValueWidget(GradeValue(index + 1, "", "", 0),
+                      fill: true, size: 36.0),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
+    ]);
+  }
+
+  void showRenameDialog(
+      {required String title,
+      required String cancel,
+      required String done,
+      required Map<String, String> rarities,
+      required String gradeIndex,
+      required List<String> defaultRarities,
+      required}) {
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(builder: (context, setS) {
+        String? rr = rarities[gradeIndex];
+        rr ??= '';
+
+        _rarityText.text = rr;
+
+        return AlertDialog(
+          title: Text(title),
+          content: TextField(
+            controller: _rarityText,
+            autofocus: true,
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              label: Text(defaultRarities[int.parse(gradeIndex) - 1]),
+              suffixIcon: IconButton(
+                icon: const Icon(FeatherIcons.x),
+                onPressed: () {
+                  setState(() {
+                    _rarityText.clear();
+                  });
+                },
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: Text(
+                cancel,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+              onPressed: () {
+                Navigator.of(context).maybePop();
+              },
+            ),
+            TextButton(
+              child: Text(
+                done,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+              onPressed: () {
+                rarities[gradeIndex] = _rarityText.text;
+
+                Provider.of<DatabaseProvider>(context, listen: false)
+                    .userStore
+                    .storeGradeRarities(rarities, userId: user.id!);
+
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      }),
+    ).then((val) {
+      _rarityText.clear();
+    });
   }
 }
 
